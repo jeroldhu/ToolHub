@@ -41,7 +41,15 @@ interface DraftState {
   savedAt: string;
 }
 
-const createId = () => crypto.randomUUID();
+const createId = () => {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex: string[] = [];
+  for (const b of bytes) hex.push(b.toString(16).padStart(2, '0'));
+  return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10).join('')}`;
+};
 const draftStorageKey = 'toolhub-aa-assistant-draft';
 const nameHistoryStorageKey = 'toolhub-aa-assistant-name-history';
 const toNumber = (value: string) => Math.max(Number(value) || 0, 0);
