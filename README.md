@@ -11,8 +11,21 @@ npm run build
 npm run lint
 ```
 
+## Tools Structure
+
+每个工具都放在独立目录中：
+
+```text
+src/tools/
+  tool-id/
+    Component.tsx
+    index.tsx
+```
+
+`Component.tsx` 实现工具页面，`index.tsx` 导出工具在页面上展示的信息，包括 `id`、名称、说明、分类、图标和组件。
+
 ## Add A Tool
 
-1. 在 `src/tools/` 下新增工具组件。
-2. 在 `src/tools/toolRegistry.tsx` 中注册 `id`、名称、说明、分类和组件。
-3. 如果是纯函数，优先把逻辑放在组件内或同目录的小 helper，保持工具彼此独立。
+1. 在 `src/tools/<tool-id>/` 下新增 `Component.tsx` 和 `index.tsx`。
+2. 在 `src/tools/toolRegistry.tsx` 中导入并加入该目录导出的 `tool`。
+3. 如果是纯函数，优先放在工具目录内，保持工具彼此独立。

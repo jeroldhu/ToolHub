@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { tools } from './tools/toolRegistry';
 import type { ToolCategory } from './tools/types';
 
-const categories: Array<ToolCategory | '全部'> = ['全部', '编码', '文本', '时间', '生成'];
+const categories: Array<ToolCategory | '全部'> = ['全部', '生活', '编码', '文本', '时间', '生成'];
 
 function App() {
   const [activeToolId, setActiveToolId] = useState(tools[0].id);
