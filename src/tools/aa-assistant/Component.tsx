@@ -521,92 +521,150 @@ export function AaAssistant() {
     downloadTextFile(`aa-result-${timestamp}.txt`, createExportText(participants, payments, balances, transfers));
   };
 
+  const totalPaidCents = useMemo(
+    () =>
+      payments.reduce((sum, payment) => {
+        const itemAmount = toNumber(payment.itemAmount);
+        const shipping = toNumber(payment.shipping);
+        const coupon = toNumber(payment.coupon);
+        const productPaid = Math.max(itemAmount - coupon, 0);
+        const displayedPaid = payment.mode === 'shipping' ? productPaid + shipping : getTotalPaid(itemAmount, shipping, coupon);
+        return sum + toCents(displayedPaid);
+      }, 0),
+    [payments],
+  );
+  const settledPayments = payments.filter((payment) => payment.saved).length;
+  const openBalanceCents = balances.reduce((sum, balance) => sum + Math.max(-balance.netCents, 0), 0);
+
   return (
     <div className="tool-panel aa-tool">
-      <section className="aa-draft-bar">
-        <div>
-          <strong>本地暂存</strong>
-          <span>{formatDraftTime(draftSavedAt)}</span>
+      <section className="aa-hero">
+        <div className="aa-hero-copy">
+          <span className="aa-eyebrow">Split Ledger</span>
+          <h3>AA 助手</h3>
+          <p>把参与人、付款明细和最终转账压进同一个暗色拟态工作台，适合多人外卖、团购和旅行账单。</p>
         </div>
-        <div className="aa-draft-actions">
-          <button className="command-button" onClick={saveDraft}>
-            <Save size={18} />
-            暂存
-          </button>
-          <button className="command-button" onClick={restoreDraft}>
-            <RotateCcw size={18} />
-            恢复
-          </button>
-          <button className="command-button" onClick={resetDraft}>
-            <Trash2 size={18} />
-            重新开始
-          </button>
+        <div className="aa-metric-grid">
+          <div className="aa-metric-card">
+            <span>参与人</span>
+            <strong>{participants.length}</strong>
+          </div>
+          <div className="aa-metric-card">
+            <span>付款笔数</span>
+            <strong>{payments.length}</strong>
+          </div>
+          <div className="aa-metric-card">
+            <span>已保存</span>
+            <strong>{settledPayments}</strong>
+          </div>
+          <div className="aa-metric-card accent">
+            <span>实付合计</span>
+            <strong>{formatMoney(totalPaidCents)}</strong>
+          </div>
         </div>
       </section>
 
-      <section className="aa-section">
-        <div className="section-heading">
-          <h3>参与人</h3>
-          <span>{participants.length} 人</span>
-        </div>
-        <div className="tool-controls">
-          <label className="field compact wide">
-            <span>姓名</span>
-            <input
-              value={participantName}
-              onChange={(event) => setParticipantName(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  addParticipant(event.currentTarget.value);
-                }
-              }}
-              placeholder="输入姓名"
-            />
-          </label>
-          <button className="command-button" onClick={() => addParticipant()}>
-            <Plus size={18} />
-            添加参与人
-          </button>
-          {nameHistory.length > 0 && (
-            <div className="name-history">
-              <span>历史姓名</span>
-              <div className="name-history-list">
-                {nameHistory.map((name) => (
-                  <span className="history-name-chip" key={name}>
-                    <button onClick={() => addParticipant(name)}>{name}</button>
-                    <button onClick={() => removeHistoryName(name)} title="删除历史姓名">
-                      <X size={13} />
+      <div className="aa-workbench">
+        <aside className="aa-side-stack">
+          <section className="aa-section aa-draft-bar">
+            <div className="section-heading">
+              <div>
+                <span className="aa-eyebrow">Local Draft</span>
+                <h3>本地暂存</h3>
+              </div>
+              <span>{formatDraftTime(draftSavedAt)}</span>
+            </div>
+            <div className="aa-draft-actions">
+              <button className="command-button" onClick={saveDraft}>
+                <Save size={18} />
+                暂存
+              </button>
+              <button className="command-button" onClick={restoreDraft}>
+                <RotateCcw size={18} />
+                恢复
+              </button>
+              <button className="command-button danger" onClick={resetDraft}>
+                <Trash2 size={18} />
+                重新开始
+              </button>
+            </div>
+          </section>
+
+          <section className="aa-section aa-participant-panel">
+            <div className="section-heading">
+              <div>
+                <span className="aa-eyebrow">People</span>
+                <h3>参与人</h3>
+              </div>
+              <span>{participants.length} 人</span>
+            </div>
+            <div className="tool-controls aa-person-form">
+              <label className="field compact wide">
+                <span>姓名</span>
+                <input
+                  value={participantName}
+                  onChange={(event) => setParticipantName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      addParticipant(event.currentTarget.value);
+                    }
+                  }}
+                  placeholder="输入姓名"
+                />
+              </label>
+              <button className="command-button primary" onClick={() => addParticipant()}>
+                <Plus size={18} />
+                添加参与人
+              </button>
+              {nameHistory.length > 0 && (
+                <div className="name-history">
+                  <span>历史姓名</span>
+                  <div className="name-history-list">
+                    {nameHistory.map((name) => (
+                      <span className="history-name-chip" key={name}>
+                        <button onClick={() => addParticipant(name)}>{name}</button>
+                        <button onClick={() => removeHistoryName(name)} title="删除历史姓名">
+                          <X size={13} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="participant-list">
+              {participants.length === 0 ? (
+                <div className="empty-state">先添加参与人，付款单会自动同步成员。</div>
+              ) : (
+                participants.map((person) => (
+                  <span className="person-chip" key={person.id}>
+                    {person.name}
+                    <button onClick={() => removeParticipant(person.id)} title="删除参与人">
+                      <X size={14} />
                     </button>
                   </span>
-                ))}
-              </div>
+                ))
+              )}
             </div>
-          )}
-        </div>
-        <div className="participant-list">
-          {participants.map((person) => (
-            <span className="person-chip" key={person.id}>
-              {person.name}
-              <button onClick={() => removeParticipant(person.id)} title="删除参与人">
-                <X size={14} />
+          </section>
+        </aside>
+
+        <main className="aa-ledger">
+          <section className="aa-section aa-payment-panel">
+            <div className="section-heading">
+              <div>
+                <span className="aa-eyebrow">Payments</span>
+                <h3>付款信息</h3>
+              </div>
+              <button className="command-button primary" onClick={() => setPayments([createPayment(participants), ...payments])}>
+                <Plus size={18} />
+                添加付款
               </button>
-            </span>
-          ))}
-        </div>
-      </section>
+            </div>
 
-      <section className="aa-section">
-        <div className="section-heading">
-          <h3>付款信息</h3>
-          <button className="command-button" onClick={() => setPayments([createPayment(participants), ...payments])}>
-            <Plus size={18} />
-            添加付款
-          </button>
-        </div>
-
-        <div className="payment-list">
-          {payments.map((payment, index) => {
+            <div className="payment-list">
+              {payments.map((payment, index) => {
             const productPaid = Math.max(toNumber(payment.itemAmount) - toNumber(payment.coupon), 0);
             const discount = toNumber(payment.itemAmount) > 0 ? productPaid / toNumber(payment.itemAmount) : 0;
             const totalBeforeDiscount = toNumber(payment.itemAmount) + toNumber(payment.shipping);
@@ -651,7 +709,7 @@ export function AaAssistant() {
                 </div>
 
                 {!payment.collapsed && (
-                  <>
+                  <div className="payment-body">
                     <div className="form-grid">
                       <label className="field">
                         <span>商品名称</span>
@@ -720,16 +778,19 @@ export function AaAssistant() {
                       </div>
                     </div>
 
-                    <div className="segmented" aria-label="AA 方式">
-                      <button className={payment.mode === 'total' ? 'active' : ''} onClick={() => updatePayment(payment.id, { mode: 'total' })}>
-                        按总价 AA
-                      </button>
-                      <button
-                        className={payment.mode === 'shippingRatio' ? 'active' : ''}
-                        onClick={() => updatePayment(payment.id, { mode: 'shippingRatio' })}
-                      >
-                        按个人填入原始金额
-                      </button>
+                    <div className="payment-mode-row">
+                      <span>AA 方式</span>
+                      <div className="segmented" aria-label="AA 方式">
+                        <button className={payment.mode === 'total' ? 'active' : ''} onClick={() => updatePayment(payment.id, { mode: 'total' })}>
+                          按总价 AA
+                        </button>
+                        <button
+                          className={payment.mode === 'shippingRatio' ? 'active' : ''}
+                          onClick={() => updatePayment(payment.id, { mode: 'shippingRatio' })}
+                        >
+                          按个人填入原始金额
+                        </button>
+                      </div>
                     </div>
 
                     {payment.mode !== 'total' && (
@@ -756,7 +817,7 @@ export function AaAssistant() {
                         {(displayedDiscount * 100).toFixed(2)}%
                       </span>
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {payment.saved && (
@@ -817,52 +878,67 @@ export function AaAssistant() {
                 )}
               </article>
             );
-          })}
-        </div>
-      </section>
-
-      <section className="aa-section">
-        <div className="section-heading">
-          <h3>结算结果</h3>
-          <button className="command-button" onClick={exportResult}>
-            <Download size={18} />
-            导出结果
-          </button>
-        </div>
-        <div className="balance-table">
-          <div className="balance-row header">
-            <span>姓名</span>
-            <span>应承担</span>
-            <span>已付款</span>
-            <span>结果</span>
-          </div>
-          {balances.map((balance) => (
-            <div className="balance-row" key={balance.participant.id}>
-              <strong>{balance.participant.name}</strong>
-              <span>{formatMoney(balance.shouldPayCents)}</span>
-              <span>{formatMoney(balance.paidCents)}</span>
-              <strong className={balance.netCents >= 0 ? 'positive-money' : 'negative-money'}>
-                {balance.netCents >= 0 ? `应收 ${formatMoney(balance.netCents)}` : `应付 ${formatMoney(balance.netCents)}`}
-              </strong>
+              })}
             </div>
-          ))}
-        </div>
+          </section>
+        </main>
 
-        <div className="transfer-list">
-          {transfers.length === 0 ? (
-            <div className="empty-state">当前无需转账。</div>
-          ) : (
-            transfers.map((transfer) => (
-              <div key={`${transfer.from}-${transfer.to}-${transfer.cents}`}>
-                <span>{transfer.from}</span>
-                <strong>转给</strong>
-                <span>{transfer.to}</span>
-                <strong>{formatMoney(transfer.cents)}</strong>
+        <aside className="aa-summary-panel">
+          <section className="aa-section aa-result-card">
+            <div className="section-heading">
+              <div>
+                <span className="aa-eyebrow">Settlement</span>
+                <h3>结算结果</h3>
               </div>
-            ))
-          )}
-        </div>
-      </section>
+              <button className="command-button" onClick={exportResult}>
+                <Download size={18} />
+                导出结果
+              </button>
+            </div>
+            <div className="aa-summary-total">
+              <span>待转账金额</span>
+              <strong>{formatMoney(openBalanceCents)}</strong>
+            </div>
+            <div className="balance-table">
+              <div className="balance-row header">
+                <span>姓名</span>
+                <span>应承担</span>
+                <span>已付款</span>
+                <span>结果</span>
+              </div>
+              {balances.length === 0 ? (
+                <div className="empty-state">暂无参与人。</div>
+              ) : (
+                balances.map((balance) => (
+                  <div className="balance-row" key={balance.participant.id}>
+                    <strong>{balance.participant.name}</strong>
+                    <span>{formatMoney(balance.shouldPayCents)}</span>
+                    <span>{formatMoney(balance.paidCents)}</span>
+                    <strong className={balance.netCents >= 0 ? 'positive-money' : 'negative-money'}>
+                      {balance.netCents >= 0 ? `应收 ${formatMoney(balance.netCents)}` : `应付 ${formatMoney(balance.netCents)}`}
+                    </strong>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="transfer-list">
+              {transfers.length === 0 ? (
+                <div className="empty-state">当前无需转账。</div>
+              ) : (
+                transfers.map((transfer) => (
+                  <div key={`${transfer.from}-${transfer.to}-${transfer.cents}`}>
+                    <span>{transfer.from}</span>
+                    <strong>转给</strong>
+                    <span>{transfer.to}</span>
+                    <strong>{formatMoney(transfer.cents)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

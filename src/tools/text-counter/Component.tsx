@@ -23,28 +23,42 @@ export function TextCounter() {
   }, [text]);
 
   return (
-    <div className="tool-panel">
-      <div className="tool-controls">
-        <button className="command-button" onClick={() => navigator.clipboard.writeText(text)}>
-          <ClipboardCheck size={18} />
-          复制文本
-        </button>
-        <button className="icon-button" onClick={() => setText('')} title="清空">
-          <Eraser size={18} />
-        </button>
-      </div>
-      <div className="stats-grid">
-        {stats.map((item) => (
-          <div className="stat-card" key={item.label}>
-            <span>{item.label}</span>
-            <strong>{item.value.toLocaleString()}</strong>
+    <div className="tool-panel tool-page-shell text-tool">
+      <div className="tool-page-inner">
+        <section className="tool-page-hero">
+          <div className="tool-copy">
+            <span className="tool-eyebrow">Text metrics</span>
+            <h3>让长文本的体量一眼可见</h3>
+            <p>统计字符、字节、行数和片段数量，适合写摘要、检查提示词长度或整理待发布文案。</p>
           </div>
-        ))}
+          <div className="tool-hero-stat">
+            <span>总字符</span>
+            <strong>{text.length.toLocaleString()}</strong>
+          </div>
+        </section>
+
+        <div className="tool-controls">
+          <button className="command-button primary" onClick={() => navigator.clipboard.writeText(text)}>
+            <ClipboardCheck size={18} />
+            复制文本
+          </button>
+          <button className="icon-button" onClick={() => setText('')} title="清空">
+            <Eraser size={18} />
+          </button>
+        </div>
+        <div className="stats-grid">
+          {stats.map((item) => (
+            <div className="stat-card" key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value.toLocaleString()}</strong>
+            </div>
+          ))}
+        </div>
+        <label className="field stretch tall">
+          <span>文本</span>
+          <textarea value={text} onChange={(event) => setText(event.target.value)} />
+        </label>
       </div>
-      <label className="field stretch tall">
-        <span>文本</span>
-        <textarea value={text} onChange={(event) => setText(event.target.value)} />
-      </label>
     </div>
   );
 }

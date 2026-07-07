@@ -22,27 +22,41 @@ export function UuidGenerator() {
   };
 
   return (
-    <div className="tool-panel">
-      <div className="tool-controls">
-        <button className="command-button" onClick={() => setUuids(Array.from({ length: 5 }, createUuid))}>
-          <Shuffle size={18} />
-          重新生成
-        </button>
-        <button className="command-button" onClick={() => setUuids([...uuids, createUuid()])}>
-          <Plus size={18} />
-          增加一个
-        </button>
-        <button className="command-button" onClick={copyAll}>
-          <Copy size={18} />
-          {copied ? '已复制' : '复制全部'}
-        </button>
-      </div>
-      <div className="uuid-list">
-        {uuids.map((uuid) => (
-          <button key={uuid} onClick={() => navigator.clipboard.writeText(uuid)} title="点击复制">
-            {uuid}
+    <div className="tool-panel tool-page-shell uuid-tool">
+      <div className="tool-page-inner">
+        <section className="tool-page-hero">
+          <div className="tool-copy">
+            <span className="tool-eyebrow">Identifier batch</span>
+            <h3>批量生成可直接复制的 UUID</h3>
+            <p>一次生成一组 v4 UUID，点击任意条目可单独复制，也可以将整组写入剪贴板。</p>
+          </div>
+          <div className="tool-hero-stat">
+            <span>当前数量</span>
+            <strong>{uuids.length}</strong>
+          </div>
+        </section>
+
+        <div className="tool-controls">
+          <button className="command-button primary" onClick={() => setUuids(Array.from({ length: 5 }, createUuid))}>
+            <Shuffle size={18} />
+            重新生成
           </button>
-        ))}
+          <button className="command-button" onClick={() => setUuids([...uuids, createUuid()])}>
+            <Plus size={18} />
+            增加一个
+          </button>
+          <button className="command-button" onClick={copyAll}>
+            <Copy size={18} />
+            {copied ? '已复制' : '复制全部'}
+          </button>
+        </div>
+        <div className="uuid-list">
+          {uuids.map((uuid) => (
+            <button key={uuid} onClick={() => navigator.clipboard.writeText(uuid)} title="点击复制">
+              {uuid}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
