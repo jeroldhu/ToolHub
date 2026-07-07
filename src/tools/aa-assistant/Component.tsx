@@ -83,10 +83,7 @@ const createPayment = (participants: Participant[]): Payment => ({
   collapsed: false,
 });
 
-const initialParticipants: Participant[] = [
-  { id: createId(), name: '张三' },
-  { id: createId(), name: '李四' },
-];
+const initialParticipants: Participant[] = [];
 
 const createInitialPayments = () => [createPayment(initialParticipants)];
 
