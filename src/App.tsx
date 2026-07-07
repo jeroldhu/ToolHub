@@ -79,6 +79,12 @@ function App() {
               </button>
             );
           })}
+          {filteredTools.length === 0 && (
+            <div className="sidebar-empty">
+              <strong>没有找到匹配工具</strong>
+              <span>换个关键词或切回全部分类试试。</span>
+            </div>
+          )}
         </nav>
       </aside>
 
@@ -94,7 +100,10 @@ function App() {
               <p>{activeTool.description}</p>
             </div>
           </div>
-          <div className="tool-count">{tools.length} 个工具</div>
+          <div className="tool-count">
+            <strong>{filteredTools.length}</strong>
+            <span>/ {tools.length} 个工具</span>
+          </div>
         </header>
 
         <ActiveComponent />
