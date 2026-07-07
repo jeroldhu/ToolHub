@@ -1,5 +1,5 @@
-import { Search, Sparkles } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Search, Sparkles, Sun, Moon } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
 import { tools } from './tools/toolRegistry';
 import type { ToolCategory } from './tools/types';
 
@@ -9,6 +9,11 @@ function App() {
   const [activeToolId, setActiveToolId] = useState(tools[0].id);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<ToolCategory | '全部'>('全部');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const filteredTools = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -19,7 +24,6 @@ function App() {
         tool.name.toLowerCase().includes(normalized) ||
         tool.description.toLowerCase().includes(normalized) ||
         tool.category.toLowerCase().includes(normalized);
-
       return categoryMatched && queryMatched;
     });
   }, [category, query]);
@@ -29,32 +33,41 @@ function App() {
   const ActiveIcon = activeTool.icon;
 
   return (
-    <main className="app-shell">
+    <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">
-            <Sparkles size={22} />
+        <div className="sidebar-header">
+          <div className="brand">
+            <div className="brand-icon">
+              <Sparkles size={20} />
+            </div>
+            <div className="brand-text">
+              <h1>ToolHub</h1>
+              <p>即开即用</p>
+            </div>
           </div>
-          <div>
-            <h1>Tools Web</h1>
-            <p>小工具，打开就干活。</p>
-          </div>
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+            aria-label="切换主题"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
 
-        <label className="search-box">
-          <Search size={18} />
+        <div className="search-box">
+          <Search size={16} />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索工具"
+            placeholder="搜索工具…"
           />
-        </label>
+        </div>
 
-        <div className="category-list">
+        <div className="category-strip">
           {categories.map((item) => (
             <button
               key={item}
-              className={item === category ? 'active' : ''}
+              className={`chip ${item === category ? 'active' : ''}`}
               onClick={() => setCategory(item)}
             >
               {item}
@@ -68,11 +81,13 @@ function App() {
             return (
               <button
                 key={tool.id}
-                className={tool.id === activeTool.id ? 'tool-item active' : 'tool-item'}
+                className={`tool-item ${tool.id === activeTool.id ? 'active' : ''}`}
                 onClick={() => setActiveToolId(tool.id)}
               >
-                <Icon size={20} />
-                <span>
+                <span className="tool-icon">
+                  <Icon size={18} />
+                </span>
+                <span className="tool-meta">
                   <strong>{tool.name}</strong>
                   <small>{tool.description}</small>
                 </span>
@@ -80,26 +95,31 @@ function App() {
             );
           })}
         </nav>
+
+        <div className="sidebar-footer">
+          <span className="tool-count">{tools.length} 个工具</span>
+        </div>
       </aside>
 
-      <section className="workspace">
+      <main className="workspace">
         <header className="workspace-header">
           <div className="title-block">
             <div className="title-icon">
-              <ActiveIcon size={24} />
+              <ActiveIcon size={22} />
             </div>
-            <div>
-              <span>{activeTool.category}</span>
+            <div className="title-text">
+              <span className="title-category">{activeTool.category}</span>
               <h2>{activeTool.name}</h2>
               <p>{activeTool.description}</p>
             </div>
           </div>
-          <div className="tool-count">{tools.length} 个工具</div>
         </header>
 
-        <ActiveComponent />
-      </section>
-    </main>
+        <div className="workspace-content" key={activeToolId}>
+          <ActiveComponent />
+        </div>
+      </main>
+    </div>
   );
 }
 
