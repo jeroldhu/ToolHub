@@ -16,7 +16,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -qO- http://localhost:8000/ || exit 1
+  CMD wget -qO- http://127.0.0.1:8000/ || exit 1
 
 EXPOSE 8000
 CMD ["python3", "-m", "http.server", "8000", "--directory", "/usr/share/nginx/html"]
